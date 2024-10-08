@@ -20,7 +20,17 @@ public class SparsePolynomial implements Polynomial {
    */
   @Override
   public Polynomial add(Polynomial other) {
-    return null;
+    Polynomial summedPolynomial = new SparsePolynomial();
+//    for (int i = getDegree(); i >= 0; i--) {
+//      summedPolynomial.addTerm(getCoefficient(i), i);
+//    }
+    for (Term term : realPolynomialList) {
+      summedPolynomial.addTerm(term.getCoefficient(), term.getExponent());
+    }
+    for (int i = other.getDegree(); i >= 0; i--) {
+      summedPolynomial.addTerm(other.getCoefficient(i), i);
+    }
+    return summedPolynomial;
   }
 
   /**
@@ -33,7 +43,19 @@ public class SparsePolynomial implements Polynomial {
    */
   @Override
   public Polynomial multiply(Polynomial other) {
-    return null;
+    Polynomial newPolynomial = new SparsePolynomial();
+    for (int i = realPolynomialList.size()-1; i >= 0; i--) {
+      Term firstPoly = realPolynomialList.get(i);
+      for (int j = other.getDegree(); j >= 0; j--) {
+
+        if (firstPoly.getCoefficient() != 0 && other.getCoefficient(j) != 0) {
+          int newCoefficient = firstPoly.getCoefficient() * other.getCoefficient(j);
+          int newDegree = firstPoly.getExponent() + j;
+          newPolynomial.addTerm(newCoefficient, newDegree);
+        }
+      }
+    }
+    return newPolynomial;
   }
 
   /**
@@ -45,7 +67,17 @@ public class SparsePolynomial implements Polynomial {
    */
   @Override
   public Polynomial derivative() {
-    return null;
+    Polynomial derivedPolynomial = new SparsePolynomial();
+    for (Term term : realPolynomialList) {
+      Term derivedTerm = term.derive();
+
+      if(derivedTerm.getExponent() > 0) {
+        derivedPolynomial.addTerm(derivedTerm.getCoefficient(),
+                derivedTerm.getExponent());
+      }
+
+    }
+    return derivedPolynomial;
   }
 
   /**
@@ -57,24 +89,22 @@ public class SparsePolynomial implements Polynomial {
    */
   @Override
   public void addTerm(int coefficient, int power) throws IllegalArgumentException {
-    realPolynomialList.add(new Term(0, 0));
-    if(power < 0) {
-      throw new IllegalArgumentException();
+    if (power < 0) {
+      throw new IllegalArgumentException("Power cant be negative");
     }
-    if(coefficient == 0) {
+    if (coefficient == 0) {
       return;
     }
-
-    for(int i = 0; i < realPolynomialList.size(); i++) {
+    maxDegree = Math.max(maxDegree, power);
+    for (int i = 0; i < realPolynomialList.size(); i++) {
       Term term = realPolynomialList.get(i);
-      if(term.getExponent() == power) {
+      if (term.getExponent() == power) {
         term.updateCoefficient(coefficient);
-        if(term.getCoefficient() == 0) {
+        if (term.getCoefficient() == 0) {
           realPolynomialList.remove(i);
         }
         return;
-      }
-      else if(term.getExponent() < power) {
+      } else if (term.getExponent() < power) {
         realPolynomialList.add(i, new Term(coefficient, power));
         return;
       }
@@ -90,7 +120,7 @@ public class SparsePolynomial implements Polynomial {
    */
   @Override
   public int getDegree() {
-    return 0;
+    return maxDegree;
   }
 
   /**
@@ -101,7 +131,13 @@ public class SparsePolynomial implements Polynomial {
    */
   @Override
   public double evaluate(double x) {
-    return 0;
+    double total = 0;
+    for (Term term : realPolynomialList) {
+      double solvedTerm = term.solve(x);
+      total += solvedTerm;
+    }
+
+    return total;
   }
 
   /**
@@ -112,32 +148,54 @@ public class SparsePolynomial implements Polynomial {
    */
   @Override
   public int getCoefficient(int power) {
+    if (power < 0) {
+      return 0;
+    }
+    for(Term term : realPolynomialList) {
+      if(term.getExponent() == power) {
+        return term.getCoefficient();
+      }
+    }
     return 0;
   }
 
   @Override
   public String toString() {
-    StringBuilder resultString = new StringBuilder();
+//    StringBuilder resultString = new StringBuilder();
+    StringBuilder result = new StringBuilder();
+
     for (int i = 0; i < realPolynomialList.size(); i++) {
       Term term = realPolynomialList.get(i);
-      if(term.getCoefficient() != 0) {
-        resultString.append(term);
+      if (i > 0 && term.getCoefficient() > 0) {
+        result.append("+");
       }
-      int nextIndex = i + 1;
-      if (nextIndex >= realPolynomialList.size()) {
-        nextIndex = realPolynomialList.size() - 1;
-      }
-      if (realPolynomialList.get(nextIndex).getCoefficient() > 0) {
-        resultString.append("+");
-      } else {
-        resultString.append("-");
-      }
+      result.append(term);
+    }
 
-    }
-    while(resultString.charAt(resultString.length() - 1) == '+'
-            || resultString.charAt(resultString.length() - 1) == '-') {
-      resultString.deleteCharAt(resultString.length() - 1);
-    }
-    return resultString.toString();
+    return result.toString();
+//    for (int i = 0; i < realPolynomialList.size(); i++) {
+//      Term term = realPolynomialList.get(i);
+//      if(term.getCoefficient() > 0) {
+//        resultString.append(term);
+//      } else if (term.getCoefficient() < 0) {
+//        resultString.append(new Term(Math.abs(term.getCoefficient()),
+//                term.getExponent()));
+//      }
+//      int nextIndex = i + 1;
+//      if (nextIndex >= realPolynomialList.size()) {
+//        nextIndex = realPolynomialList.size() - 1;
+//      }
+//      if (realPolynomialList.get(nextIndex).getCoefficient() >= 0) {
+//        resultString.append("+");
+//      } else {
+//        resultString.append("-");
+//      }
+//
+//    }
+//    while(resultString.charAt(resultString.length() - 1) == '+'
+//            || resultString.charAt(resultString.length() - 1) == '-') {
+//      resultString.deleteCharAt(resultString.length() - 1);
+//    }
+//    return resultString.toString();
   }
 }

@@ -26,16 +26,28 @@ public class Term {
     exponent += newExponent;
   }
 
+  public double solve(double x) {
+    return coefficient * Math.pow(x, exponent);
+  }
+
+  public Term derive() {
+    if(exponent == 0) {
+      coefficient = 0;
+    }
+    return new Term(coefficient * exponent,exponent - 1);
+  }
+
   @Override
   public String toString() {
     if(exponent > 0) {
       return coefficient + "x" + "^" + exponent;
-    } else if (exponent == 0 && coefficient > 0) {
+    } else if (exponent == 0) {
       return coefficient + "";
     } else {
       return "";
     }
 
   }
+
 
 }
